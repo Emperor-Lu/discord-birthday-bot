@@ -13,8 +13,7 @@ from datetime import datetime, timezone
 TOKEN = os.getenv("TOKEN")
 
 ANNOUNCEMENT_CHANNEL_ID = 1511148697344544948
-
-
+VENT_CHANNEL_ID = 1511049009425416354
 
 BIRTHDAY_ROLE_NAME = "🎉 Birthday"
 
@@ -147,7 +146,39 @@ async def on_ready():
         cleanup_roles.start()
 
 
+class VentModal(discord.ui.Modal, title="Anonymous Vent"):
 
+    vent_text = discord.ui.TextInput(
+        label="What's on your mind?",
+        style=discord.TextStyle.paragraph,
+        placeholder="Type your vent here...",
+        required=True,
+        max_length=1000
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+
+        channel = bot.get_channel(VENT_CHANNEL_ID)
+
+        if channel is None:
+            await interaction.response.send_message(
+                "Vent channel not found.",
+                ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(
+            title="💭 Anonymous Vent",
+            description=self.vent_text.value,
+            color=discord.Color.blurple()
+        )
+
+        await channel.send(embed=embed)
+
+        await interaction.response.send_message(
+            "Your anonymous vent has been posted.",
+            ephemeral=True
+        )
 
 
 # ---------------- /birthday ----------------
@@ -190,8 +221,14 @@ async def birthday(interaction: discord.Interaction, month: int, day: int):
 
     )
 
+# ----------------    /vent     ----------------
 
-
+@bot.tree.command(
+    name="vent",
+    description="Post an anonymous vent"
+)
+async def vent(interaction: discord.Interaction):
+    await interaction.response.send_modal(VentModal())
 
 
 # ---------------- /nextbirthday ----------------
